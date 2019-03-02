@@ -1,0 +1,206 @@
+<mat-toolbar class="home-toolbar">
+  <mat-toolbar-row style="height: 16px">
+  </mat-toolbar-row>
+
+  <mat-toolbar-row style="height: 48px" *ngIf="currentPage === PageEnum.ALL">
+    <div style="width: 204px;">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon aria-label="back">keyboard_arrow_left</mat-icon>
+      </button>
+      <button mat-icon-button (click)="goForward()">
+        <mat-icon aria-label="forward">keyboard_arrow_right</mat-icon>
+      </button>
+    </div>
+    <!--<button mat-icon-button>-->
+    <!--<mat-icon aria-label="cloud_upload" class="material-icons-new outline-cloud_upload"-->
+    <!--(click)="upload()"></mat-icon>-->
+    <!--</button>-->
+    <!--<button mat-icon-button>-->
+    <!--<mat-icon aria-label="cloud_download" class="material-icons-new outline-cloud_download"-->
+    <!--(click)="upload()"></mat-icon>-->
+    <!--</button>-->
+    <!--<button mat-icon-button (click)="mkdir()">-->
+    <!--<mat-icon aria-label="create_new_folder" class="material-icons-new outline-create_new_folder"></mat-icon>-->
+    <!--</button>-->
+    <!--<button mat-icon-button>-->
+    <!--<mat-icon aria-label="share" class="material-icons-new outline-share" (click)="share()"></mat-icon>-->
+    <!--</button>-->
+    <button mat-button (click)="downloadAllSelect()" *ngIf="selection.hasValue()">
+      <mat-icon aria-label="" class="material-icons-new outline-arrow_downward"></mat-icon>
+      下载
+    </button>
+    <!-- This fills the remaining space of the current row -->
+    <span class="example-fill-remaining-space"></span>
+    <button mat-button>
+      <mat-icon aria-label="menu" class="material-icons-new outline-menu"></mat-icon>
+    </button>
+    <button mat-button (click)="refresh()">
+      <mat-icon aria-label="refresh" class="material-icons-new outline-refresh"></mat-icon>
+    </button>
+  </mat-toolbar-row>
+  <mat-toolbar-row style="height: 48px" *ngIf="currentPage === PageEnum.DOWNLOAD">
+    <div style="width: 204px;"></div>
+    <button mat-button (click)="pauseDl()">
+      <mat-icon aria-label="pause" class="material-icons-new outline-pause"></mat-icon>
+      {{downloadSelection.isEmpty() ? '全部' : ''}}暂停
+    </button>
+    <button mat-button (click)="unPauseDl()">
+      <mat-icon aria-label="play_arrow" class="material-icons-new outline-play_arrow"></mat-icon>
+      {{downloadSelection.isEmpty() ? '全部' : ''}}开始
+    </button>
+    <button mat-button (click)="removeDl()">
+      <mat-icon aria-label="delete_all" class="material-icons-new outline-delete"></mat-icon>
+      {{downloadSelection.isEmpty() ? '全部' : ''}}删除
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+<mat-drawer-container class="main-content">
+  <mat-drawer class="sidenavbar" mode="side" opened>
+
+    <div style="height: 71px;width: 100%">
+      {{user.username}}
+      <p>总共:{{quota.total}}GB 已使用:{{quota.used}}GB</p>
+    </div>
+
+    <mat-list>
+      <mat-divider></mat-divider>
+      <mat-list-item (click)="clickNavMenu(PageEnum.ALL)"
+                     [style.background-color]="currentPage == PageEnum.ALL ? '#e0e0e0' : 'transparent'">
+        <mat-icon aria-label="" class="material-icons-new outline-folder"></mat-icon>
+        <mat-list-item role="listitem">全部文件</mat-list-item>
+        <mat-divider></mat-divider>
+      </mat-list-item>
+      <mat-list-item (click)="clickNavMenu(PageEnum.DOWNLOAD)"
+                     [style.background-color]="currentPage == PageEnum.DOWNLOAD ? '#e0e0e0' : 'transparent'">
+        <mat-icon aria-label="" class="material-icons-new outline-view_list"></mat-icon>
+        <mat-list-item role="listitem">下载内容</mat-list-item>
+        <mat-divider></mat-divider>
+      </mat-list-item>
+      <!--<mat-list-item (click)="clickNavMenu(PageEnum.UPLOAD)"-->
+      <!--[style.background-color]="currentPage == PageEnum.UPLOAD ? '#e0e0e0' : 'transparent'">-->
+      <!--<mat-icon aria-label="" class="material-icons-new outline-arrow_upward"></mat-icon>-->
+      <!--<mat-list-item role="listitem">正在上传</mat-list-item>-->
+      <!--<mat-divider></mat-divider>-->
+      <!--</mat-list-item>-->
+      <!--<mat-list-item (click)="clickNavMenu(PageEnum.FINISH)"-->
+                     <!--[style.background-color]="currentPage == PageEnum.FINISH ? '#e0e0e0' : 'transparent'">-->
+        <!--<mat-icon aria-label="" class="material-icons-new outline-done_all"></mat-icon>-->
+        <!--<mat-list-item role="listitem">传输完成</mat-list-item>-->
+        <!--<mat-divider></mat-divider>-->
+      <!--</mat-list-item>-->
+      <mat-list-item>
+        <mat-icon aria-label="" class="material-icons-new outline-exit_to_app"></mat-icon>
+        <mat-list-item role="listitem" (click)="logout()">退出账号</mat-list-item>
+      </mat-list-item>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="drawercontent mat-elevation-z8">
+    <div class="example-container" *ngIf="currentPage === PageEnum.ALL">
+
+      <table mat-table [dataSource]="dataSource" matSort class="file-table">
+
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="$event ? masterToggle(selection, dataSource) : null"
+                          [checked]="selection.hasValue() && isAllSelected(selection, dataSource)"
+                          [indeterminate]="selection.hasValue() && !isAllSelected(selection, dataSource)">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(row) : null"
+                          [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="server_filename">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> 文件名</th>
+          <td mat-cell *matCellDef="let element;let i = index;">
+            <div fxLayout="row" fxLayoutAlign="left center">
+              <span *ngIf="element.isdir">
+                <mat-icon aria-label="folder" class="yellow-icon" *ngIf="!element.iconName">folder</mat-icon>
+                <mat-icon svgIcon="{{element.iconName}}" *ngIf="element.iconName"></mat-icon>
+              </span>
+              <mat-icon svgIcon="{{element.iconName}}" *ngIf="!element.isdir"></mat-icon>
+              <div style="padding: 2px;" (click)="$event.stopPropagation();">{{element.server_filename}}</div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Size Column -->
+        <ng-container matColumnDef="size">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> 大小</th>
+          <td mat-cell *matCellDef="let element">
+            <span>{{getSizeText(element.size)}}</span>
+          </td>
+        </ng-container>
+
+        <!-- Symbol Column -->
+        <ng-container matColumnDef="server_mtime">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> 更新时间</th>
+          <td mat-cell *matCellDef="let element"> {{element.server_mtime + '000' | date: 'yyyy.MM.dd HH:mm'}} </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true " style="height: 32px;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            (click)="$event.stopPropagation();onClickItem(row);"></tr>
+      </table>
+    </div>
+
+    <div class="example-container" *ngIf="currentPage === PageEnum.DOWNLOAD">
+      <table mat-table [dataSource]="downloadTableDataSource" matSort class="file-table">
+
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="$event ? masterToggle(downloadSelection, downloadTableDataSource) : null"
+                          [checked]="downloadSelection.hasValue() && isAllSelected(downloadSelection, downloadTableDataSource)"
+                          [indeterminate]="downloadSelection.hasValue() && !isAllSelected(downloadSelection, downloadTableDataSource)">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? downloadSelection.toggle(row) : null"
+                          [checked]="downloadSelection.isSelected(row)">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="fileName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>文件名</th>
+          <td mat-cell *matCellDef="let element;let i = index;">
+            {{element.fileName}}
+          </td>
+        </ng-container>
+
+        <!-- Size Column -->
+        <ng-container matColumnDef="totalLength">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>大小</th>
+          <td mat-cell *matCellDef="let element">
+            <span>{{getSizeText(element.completedLength) + '/' + getSizeText(element.totalLength)}}</span>
+          </td>
+        </ng-container>
+
+        <!-- Symbol Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>状态</th>
+          <td mat-cell *matCellDef="let element"> {{element.status}} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="downloadTableColumns; sticky: true " style="height: 32px;"></tr>
+        <tr mat-row *matRowDef="let row; columns: downloadTableColumns;"
+            (click)="$event.stopPropagation();"></tr>
+      </table>
+    </div>
+
+    <div class="example-container" *ngIf="currentPage ===PageEnum.UPLOAD"></div>
+
+    <div class="example-container" *ngIf="currentPage ===PageEnum.FINISH"></div>
+
+  </mat-drawer-content>
+
+</mat-drawer-container>
+

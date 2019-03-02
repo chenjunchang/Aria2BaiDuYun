@@ -1,0 +1,46 @@
+<mat-toolbar class="app-toolbar">
+
+</mat-toolbar>
+<div class="container" *ngIf="showLogin">
+  <h2>登录</h2>
+  <form class="login-form">
+    <mat-form-field class="example-full-width" *ngIf="!showVcodeInput">
+      <input matInput #username placeholder="username"
+             (keyup.enter)="updateUsername(username.value)"
+             (blur)="updateUsername(username.value)"
+             [formControl]="usernameFormControl" required>
+      <mat-error *ngIf="usernameFormControl.hasError('required')">
+        username is <strong>required</strong>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="example-full-width" *ngIf="!showVcodeInput">
+      <input matInput placeholder="password" #password placeholder="password"
+             (keyup.enter)="updatePassword(password.value)"
+             (blur)="updatePassword(password.value)" type="password"
+             [formControl]="passFormControl" required>
+      <mat-error *ngIf="passFormControl.hasError('required')">
+        password is <strong>required</strong>
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="example-full-width" *ngIf="codeUrl && !showVcodeInput">
+      <input matInput placeholder="verifycode" #Verifycode placeholder="验证码"
+             (keyup.enter)="updateVerifycode(Verifycode.value)"
+             (blur)="updateVerifycode(Verifycode.value)" type="text" required>
+    </mat-form-field>
+    <img src="{{codeUrl}}" alt="" (click)="genImageUrl()">
+    <mat-form-field class="example-full-width" *ngIf="showVcodeInput">
+      <input matInput placeholder="code" #vcode placeholder="验证码"
+             (keyup.enter)="updateVcode(vcode.value)"
+             (blur)="updateVcode(vcode.value)" type="text" required>
+    </mat-form-field>
+  </form>
+  <button class="login-button" mat-raised-button color="primary" (click)="login()" *ngIf="!showVcodeInput">Login</button>
+
+  <button class="login-button" mat-raised-button color="primary" (click)="verifyCode()" *ngIf="showVcodeInput">提交</button>
+
+  <mat-action-list>
+    <button mat-list-item *ngFor="let option of verifyTypeOptions"
+            (click)="sendCodeToUser(option)"> {{ option }} </button>
+  </mat-action-list>
+</div>
+

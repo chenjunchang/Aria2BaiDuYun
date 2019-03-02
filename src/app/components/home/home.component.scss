@@ -1,0 +1,55 @@
+.home-toolbar {
+  position: sticky;
+  position: -webkit-sticky; /* For macOS/iOS Safari */
+  top: 0; /* Sets the sticky toolbar to be on top */
+  z-index: 1000; /* Ensure that your app's content doesn't overlap the toolbar */
+  -webkit-user-select: none; //使整个窗口可拖拽
+  -webkit-app-region: drag; //使拖拽区域不可复制文字
+}
+
+.example-fill-remaining-space {
+  /* This fills the remaining space, by using flexbox.
+     Every toolbar row uses a flexbox row layout. */
+  flex: 1 1 auto;
+}
+
+.example-container {
+  width: calc(100vw - 220px);
+  height: calc(100vh - 64px); //make mat-header-row sticky
+  overflow: auto;
+
+  .mat-column-select {
+    width: 28px;
+    padding-left: 12px;
+  }
+}
+
+.main-content {
+  height: calc(100vh - 64px);
+  width: 100%;
+
+  .sidenavbar {
+    width: 220px;
+  }
+
+  .drawercontent {
+    width: 100vw;
+  }
+
+  .file-table {
+    width: calc(100vw - 220px);
+  }
+
+  .mat-row:hover {
+    background: #e0e0e0;
+  }
+
+  .yellow-icon {
+    color: #fdb22b;
+  }
+
+  /* Note: If you're using an SVG icon, you should make the class target the `<svg>` element */
+  .yellow-icon svg {
+    fill: #fdb22b;
+  }
+}
