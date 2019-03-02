@@ -294,6 +294,10 @@ export class HomeComponent implements OnInit {
         }
       });
     }
+    const isActive = await this.updateDownloadHistoryTable();
+    if (isActive) {
+      this.observeDownload();
+    }
   }
 
   async unPauseDl() {
@@ -305,10 +309,10 @@ export class HomeComponent implements OnInit {
           await this.pcsService.unpause(d.gid);
         }
       });
-      const isActive = await this.updateDownloadHistoryTable();
-      if (isActive) {
-        this.observeDownload();
-      }
+    }
+    const isActive = await this.updateDownloadHistoryTable();
+    if (isActive) {
+      this.observeDownload();
     }
   }
 
@@ -326,7 +330,6 @@ export class HomeComponent implements OnInit {
     if (isActive) {
       this.observeDownload();
     }
-
   }
 
   async download(fileItem: FileItem) {
@@ -338,6 +341,10 @@ export class HomeComponent implements OnInit {
         await this.pcsService.download(fileItem.path, savePath);
         this.observeDownload();
       }
+    }
+    const isActive = await this.updateDownloadHistoryTable();
+    if (isActive) {
+      this.observeDownload();
     }
   }
 
@@ -418,11 +425,16 @@ export class HomeComponent implements OnInit {
         this.isObserving = false;
       } else {
         for (const i in active) {
+          let added = false;
           for (const j in this.downloadTableDataSource.data) {
             if (this.downloadTableDataSource.data[j].gid === active[i].gid) {
+              added = true;
               this.downloadTableDataSource.data[j].completedLength = active[i].completedLength;
               break;
             }
+          }
+          if (!added) {
+            this.downloadTableDataSource.data.push(active[i]);
           }
         }
       }
