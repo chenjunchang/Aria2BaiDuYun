@@ -24,6 +24,7 @@ export class LoginComponent implements OnInit {
   showVcodeInput = false;
   codeUrl = '';
   codeString = '';
+  errorMessage = '';
 
   constructor(public pcsService: PcsService,
               private router: Router, private activatedRoute: ActivatedRoute) {
@@ -53,6 +54,8 @@ export class LoginComponent implements OnInit {
   }
 
   async login() {
+    this.errorMessage = '';
+
     function _strTrim(t) {
       return '[object string]' === Object.prototype.toString.call(t).toLowerCase() ? t.replace(/\s/g, '') : void 0;
     }
@@ -63,6 +66,7 @@ export class LoginComponent implements OnInit {
   }
 
   async verifyCode() {
+    this.errorMessage = '';
     const result = await this.pcsService.verifyCode(this.vcode);
     const notification = new Notification('通知', {
       body: result.msg
@@ -100,6 +104,7 @@ export class LoginComponent implements OnInit {
         return true;
       case '400023':
       case '400101': // 需要验证手机或邮箱
+        this.errorMessage = '需要验证手机或邮箱';
         const verifyTypeOptions = await this.pcsService.getVerifyType();
         this.verifyTypeOptions = verifyTypeOptions;
         console.log(verifyTypeOptions);
@@ -109,9 +114,11 @@ export class LoginComponent implements OnInit {
         this.codeString = logResult.data.codeString;
         this.genImageUrl();
         console.warn(logResult.errInfo.no, logResult.errInfo.msg);
+        this.errorMessage = '请输入图片验证码';
         return false;
       default:
         console.warn(logResult.errInfo.no, logResult.errInfo.msg);
+        this.errorMessage = logResult.errInfo.msg;
         return false;
     }
   };

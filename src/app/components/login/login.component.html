@@ -5,7 +5,7 @@
   <h2>登录</h2>
   <form class="login-form">
     <mat-form-field class="example-full-width" *ngIf="!showVcodeInput">
-      <input matInput #username placeholder="username"
+      <input matInput #username placeholder="账号"
              (keyup.enter)="updateUsername(username.value)"
              (blur)="updateUsername(username.value)"
              [formControl]="usernameFormControl" required>
@@ -14,7 +14,7 @@
       </mat-error>
     </mat-form-field>
     <mat-form-field class="example-full-width" *ngIf="!showVcodeInput">
-      <input matInput placeholder="password" #password placeholder="password"
+      <input matInput placeholder="password" #password placeholder="密码"
              (keyup.enter)="updatePassword(password.value)"
              (blur)="updatePassword(password.value)" type="password"
              [formControl]="passFormControl" required>
@@ -27,16 +27,19 @@
              (keyup.enter)="updateVerifycode(Verifycode.value)"
              (blur)="updateVerifycode(Verifycode.value)" type="text" required>
     </mat-form-field>
-    <img src="{{codeUrl}}" alt="" (click)="genImageUrl()">
+    <img src="{{codeUrl}}" alt="" (click)="genImageUrl()" *ngIf="codeUrl && !showVcodeInput">
     <mat-form-field class="example-full-width" *ngIf="showVcodeInput">
-      <input matInput placeholder="code" #vcode placeholder="验证码"
+      <input matInput placeholder="code" #vcode placeholder="接收到的验证码"
              (keyup.enter)="updateVcode(vcode.value)"
              (blur)="updateVcode(vcode.value)" type="text" required>
     </mat-form-field>
   </form>
-  <button class="login-button" mat-raised-button color="primary" (click)="login()" *ngIf="!showVcodeInput">Login</button>
+  <button class="login-button" mat-raised-button color="primary" (click)="login()" *ngIf="!showVcodeInput">Login
+  </button>
 
-  <button class="login-button" mat-raised-button color="primary" (click)="verifyCode()" *ngIf="showVcodeInput">提交</button>
+  <button class="login-button" mat-raised-button color="primary" (click)="verifyCode()" *ngIf="showVcodeInput">提交
+  </button>
+  <div style="color:red">{{errorMessage}}</div>
 
   <mat-action-list>
     <button mat-list-item *ngFor="let option of verifyTypeOptions"

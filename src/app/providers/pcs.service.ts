@@ -1521,6 +1521,7 @@ export class PcsService {
         console.error(err);
       }
     });
+    console.log('PCSDATADIR', this.PCSDATADIR);
     const binName = this.os.platform() === 'darwin' ? 'aria2c' : 'aria2c.exe';
     this.Aria2cBinPath = this.path.join(this.PCSDATADIR, binName);
     this.Aria2cConfPath = this.path.join(this.PCSDATADIR, 'aria2.conf');
