@@ -1341,6 +1341,7 @@ async function get_quota(req, bdstoken) {
 }
 
 async function get_list(req, bdstoken, dir = '/') {
+  dir = dir.replace(/\\/g, '/'); // fix windows path backslash
   const qs = {
     'dir': dir,
     'bdstoken': bdstoken,

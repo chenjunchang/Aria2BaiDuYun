@@ -201,7 +201,7 @@ export class HomeComponent implements OnInit {
   }
 
   fileSaveAs(fileName): string {
-    const toLocalPath = this.path.resolve(this.remote.app.getPath('downloads'), fileName);
+    const toLocalPath = this.path.join(this.remote.app.getPath('downloads'), fileName);
     return this.remote.dialog.showSaveDialog({defaultPath: toLocalPath});
   }
 
@@ -245,7 +245,7 @@ export class HomeComponent implements OnInit {
     if (this.currentPath === '/') {
       return;
     }
-    const newPath = this.path.resolve(this.currentPath, '..');
+    const newPath = this.path.join(this.currentPath, '..');
     const p = this.path.parse(this.currentPath);
     this.steps.push(p.name);
     await this.cd(newPath);
@@ -258,7 +258,7 @@ export class HomeComponent implements OnInit {
     if (this.steps.length < 1) {
       return;
     }
-    const newPath = this.path.resolve(this.currentPath, this.steps[this.steps.length - 1]);
+    const newPath = this.path.join(this.currentPath, this.steps[this.steps.length - 1]);
     if (await this.cd(newPath)) {
       this.steps.pop();
     }
