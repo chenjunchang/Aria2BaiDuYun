@@ -1,7 +1,7 @@
 {
   "name": "aria2baiduyun",
   "version": "0.0.1",
-  "description": "Angular 7 + Electron + aria2c 开发的百度云客户端",
+  "description": "Angular 7 + Electron + aria2c 开发的百度网盘客户端",
   "homepage": "https://github.com/HolidieJacqueline/baidunetdisk",
   "author": {
     "name": "HolidieJacqueline",
