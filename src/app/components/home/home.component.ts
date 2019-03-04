@@ -95,7 +95,6 @@ export class HomeComponent implements OnInit {
   private currentPath = '/';
   private steps: string[] = []; // store back forward path
   loadingList = false;
-  downloadObservable = interval(1000);
   isObserving = false;
 
   setDataSourceAttributes() {
@@ -288,48 +287,43 @@ export class HomeComponent implements OnInit {
     if (this.downloadSelection.isEmpty()) {
       console.log(await this.pcsService.pauseAll());
     } else {
-      this.downloadSelection.selected.forEach(async (d) => {
+      this.downloadSelection.selected.forEach((d) => {
+        console.log(d);
         if (d.status === 'active') {
-          await this.pcsService.pause(d.gid);
+          this.pcsService.forcePause(d.gid);
         }
       });
     }
-    const isActive = await this.updateDownloadHistoryTable();
-    if (isActive) {
-      this.observeDownload();
-    }
+    this.updateDownloadHistoryTable();
+    this.observeDownload();
   }
 
   async unPauseDl() {
     if (this.downloadSelection.isEmpty()) {
       await this.pcsService.unpauseAll();
     } else {
-      this.downloadSelection.selected.forEach(async (d) => {
+      this.downloadSelection.selected.forEach((d) => {
         if (d.status === 'paused') {
-          await this.pcsService.unpause(d.gid);
+          this.pcsService.unpause(d.gid);
         }
       });
     }
-    const isActive = await this.updateDownloadHistoryTable();
-    if (isActive) {
-      this.observeDownload();
-    }
+    this.updateDownloadHistoryTable();
+    this.observeDownload();
   }
 
   async removeDl() {
     if (this.downloadSelection.isEmpty()) {
-      this.downloadTableDataSource.data.forEach(async (d) => {
-        await this.pcsService.remove(d.gid);
+      this.downloadTableDataSource.data.forEach((d) => {
+        this.pcsService.remove(d.gid);
       });
     } else {
-      this.downloadSelection.selected.forEach(async (d) => {
-        await this.pcsService.remove(d.gid);
+      this.downloadSelection.selected.forEach((d) => {
+        this.pcsService.remove(d.gid);
       });
     }
-    const isActive = await this.updateDownloadHistoryTable();
-    if (isActive) {
-      this.observeDownload();
-    }
+    this.updateDownloadHistoryTable();
+    this.observeDownload();
   }
 
   async download(fileItem: FileItem) {
@@ -339,13 +333,10 @@ export class HomeComponent implements OnInit {
       console.log(savePath);
       if (savePath) {
         await this.pcsService.download(fileItem.path, savePath);
-        this.observeDownload();
       }
     }
-    const isActive = await this.updateDownloadHistoryTable();
-    if (isActive) {
-      this.observeDownload();
-    }
+    this.updateDownloadHistoryTable();
+    this.observeDownload();
   }
 
   downloadAllSelect() {
@@ -381,36 +372,56 @@ export class HomeComponent implements OnInit {
 
   async clickNavMenu(currentPage: PageEnum) {
     this.currentPage = currentPage;
-    switch (currentPage) {
-      case this.PageEnum.DOWNLOAD:
-        const isActive = await this.updateDownloadHistoryTable();
-        if (isActive) {
-          this.observeDownload();
-        }
-        break;
+    if (currentPage === PageEnum.DOWNLOAD) {
+      this.updateDownloadHistoryTable();
+      this.observeDownload();
     }
   }
 
-  async updateDownloadHistoryTable(): Promise<boolean> {
-    let result = [];
-    const active = await this.pcsService.tellActive();
-    const stoped = await this.pcsService.tellStopped(0, 100);
-    const waiting = await this.pcsService.tellWaiting(0, 100);
-    result = result.concat(stoped);
-    result = result.concat(active);
-    result = result.concat(waiting);
+  updateDownloadHistoryTable(): void {
+    this.downloadSelection.clear();
+    setTimeout(async () => {
+      const result = await this.pcsService.tellStopped(0, 100);
+      this.updateDownloadTableDataSource(result);
+    }, 10);
+    setTimeout(async () => {
+      const result = await this.pcsService.tellWaiting(0, 100);
+      this.updateDownloadTableDataSource(result);
+    }, 10);
+    setTimeout(async () => {
+      const result = await this.pcsService.tellActive();
+      this.updateDownloadTableDataSource(result);
+    }, 10);
+  }
 
-    for (const i in result) {
-      const files = result[i].files;
+  private updateDownloadTableDataSource(tellResult: DownloadStatus[]) {
+    for (const i in tellResult) {
+      const files = tellResult[i].files;
       if (files.length > 0) {
         const p = this.path.parse(files[0].path);
-        result[i].fileName = p.base;
+        tellResult[i].fileName = p.base;
       }
-
     }
-    this.downloadTableDataSource.data = result;
-    this.downloadSelection.clear();
-    return active.length > 0;
+    const newItem = [];
+    for (const i in tellResult) {
+      let isNewAdd = true;
+      for (const j in this.downloadTableDataSource.data) {
+        if (tellResult[i].gid === this.downloadTableDataSource.data[j].gid) {
+          this.downloadTableDataSource.data[j].completedLength = tellResult[i].completedLength;
+          this.downloadTableDataSource.data[j].totalLength = tellResult[i].totalLength;
+          this.downloadTableDataSource.data[j].status = tellResult[i].status;
+          isNewAdd = false;
+        }
+      }
+      if (isNewAdd) {
+        newItem.push(tellResult[i]);
+      }
+    }
+    console.log('newItem', newItem);
+    if (newItem.length > 0) {
+      this.downloadTableDataSource.data.push(...newItem);
+      this.downloadTableDataSource._updateChangeSubscription();
+    }
   }
 
   observeDownload() {
@@ -418,11 +429,15 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.isObserving = true;
-    const sb = this.downloadObservable.subscribe(async () => {
+    const downloadSpeedObservable = interval(1000);
+    const sb = downloadSpeedObservable.subscribe(async () => {
       const active = await this.pcsService.tellActive();
+      console.log(active);
       if (active.length === 0) {
-        sb.unsubscribe();
-        this.isObserving = false;
+        setTimeout(() => {
+          sb.unsubscribe();
+          this.isObserving = false;
+        }, 1000);
       } else {
         for (const i in active) {
           let added = false;
@@ -430,6 +445,8 @@ export class HomeComponent implements OnInit {
             if (this.downloadTableDataSource.data[j].gid === active[i].gid) {
               added = true;
               this.downloadTableDataSource.data[j].completedLength = active[i].completedLength;
+              this.downloadTableDataSource.data[j].totalLength = active[i].totalLength;
+              this.downloadTableDataSource.data[j].status = active[i].status;
               break;
             }
           }

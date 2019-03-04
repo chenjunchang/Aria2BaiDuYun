@@ -64,16 +64,16 @@
 
     <mat-list>
       <mat-divider></mat-divider>
-      <mat-list-item (click)="clickNavMenu(PageEnum.ALL)"
-                     [style.background-color]="currentPage == PageEnum.ALL ? '#e0e0e0' : 'transparent'">
+      <mat-list-item
+        [style.background-color]="currentPage == PageEnum.ALL ? '#e0e0e0' : 'transparent'">
         <mat-icon aria-label="" class="material-icons-new outline-folder"></mat-icon>
-        <mat-list-item role="listitem">全部文件</mat-list-item>
+        <mat-list-item role="listitem" (click)="clickNavMenu(PageEnum.ALL)">全部文件</mat-list-item>
         <mat-divider></mat-divider>
       </mat-list-item>
-      <mat-list-item (click)="clickNavMenu(PageEnum.DOWNLOAD)"
-                     [style.background-color]="currentPage == PageEnum.DOWNLOAD ? '#e0e0e0' : 'transparent'">
+      <mat-list-item
+        [style.background-color]="currentPage == PageEnum.DOWNLOAD ? '#e0e0e0' : 'transparent'">
         <mat-icon aria-label="" class="material-icons-new outline-view_list"></mat-icon>
-        <mat-list-item role="listitem">下载内容</mat-list-item>
+        <mat-list-item role="listitem" (click)="clickNavMenu(PageEnum.DOWNLOAD)">下载内容</mat-list-item>
         <mat-divider></mat-divider>
       </mat-list-item>
       <!--<mat-list-item (click)="clickNavMenu(PageEnum.UPLOAD)"-->
@@ -83,10 +83,10 @@
       <!--<mat-divider></mat-divider>-->
       <!--</mat-list-item>-->
       <!--<mat-list-item (click)="clickNavMenu(PageEnum.FINISH)"-->
-                     <!--[style.background-color]="currentPage == PageEnum.FINISH ? '#e0e0e0' : 'transparent'">-->
-        <!--<mat-icon aria-label="" class="material-icons-new outline-done_all"></mat-icon>-->
-        <!--<mat-list-item role="listitem">传输完成</mat-list-item>-->
-        <!--<mat-divider></mat-divider>-->
+      <!--[style.background-color]="currentPage == PageEnum.FINISH ? '#e0e0e0' : 'transparent'">-->
+      <!--<mat-icon aria-label="" class="material-icons-new outline-done_all"></mat-icon>-->
+      <!--<mat-list-item role="listitem">传输完成</mat-list-item>-->
+      <!--<mat-divider></mat-divider>-->
       <!--</mat-list-item>-->
       <mat-list-item>
         <mat-icon aria-label="" class="material-icons-new outline-exit_to_app"></mat-icon>
