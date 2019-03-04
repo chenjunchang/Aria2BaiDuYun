@@ -52,6 +52,8 @@
       <mat-icon aria-label="delete_all" class="material-icons-new outline-delete"></mat-icon>
       {{downloadSelection.isEmpty() ? '全部' : ''}}删除
     </button>
+    <span class="example-fill-remaining-space"></span>
+    <span>{{globalStat ? getSizeText(globalStat.downloadSpeed) : '0KB'}}/S</span>
   </mat-toolbar-row>
 </mat-toolbar>
 <mat-drawer-container class="main-content">

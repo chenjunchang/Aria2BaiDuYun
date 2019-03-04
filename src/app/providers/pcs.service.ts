@@ -1465,6 +1465,15 @@ async function getContext(req): Promise<any> {
   }
 }
 
+export interface GlobalStat {
+  downloadSpeed: string
+  numActive: string
+  numStopped: string
+  numStoppedTotal: string
+  numWaiting: string
+  uploadSpeed: string
+}
+
 export interface FileUri {
   'status': string,
   'uri': string
@@ -1603,13 +1612,6 @@ export class PcsService {
     vcodestr: '',
     antireplaytoken: {}
   };
-  // MatPaginator Inputs
-  length = 100;
-  pageSize = 10;
-  pageSizeOptions: number[] = [5, 10, 25, 100];
-
-  // MatPaginator Output
-  pageEvent: PageEvent;
 
   private touchFileIfNotExists(filePath) {
     if (!this.fs.existsSync(filePath)) {
@@ -1890,12 +1892,12 @@ export class PcsService {
   }
 
 
-  public async getGlobalStat() {
-    console.log(await this.aria2.call('getGlobalStat'));
+  public async getGlobalStat(): Promise<GlobalStat> {
+    return await this.aria2.call('getGlobalStat');
   }
 
   public async tellStatus(gid: string) {
-    console.log(await this.aria2.call('tellStatus', gid));
+    return await this.aria2.call('tellStatus', gid);
   }
 
   public async tellActive(): Promise<DownloadStatus[]> {
@@ -1944,10 +1946,6 @@ export class PcsService {
 
   public async getUris(gid: string) {
     return await this.aria2.call('getUris', gid);
-  }
-
-  setPageSizeOptions(setPageSizeOptionsInput: string) {
-    this.pageSizeOptions = setPageSizeOptionsInput.split(',').map(str => +str);
   }
 
   private existAria2Server() {

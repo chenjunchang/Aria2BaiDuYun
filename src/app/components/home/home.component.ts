@@ -1,13 +1,13 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {MatIconRegistry, MatSort, MatTableDataSource} from '@angular/material';
-import {DownloadStatus, PcsService} from '../../providers/pcs.service';
+import {DownloadStatus, GlobalStat, PcsService} from '../../providers/pcs.service';
 import {BrowserWindow, remote} from 'electron';
 import * as path from 'path';
 import {Router} from '@angular/router';
 import {SelectionModel} from '@angular/cdk/collections';
 import {IconAssociations} from '../../lib/IconAssociations';
 import {DomSanitizer} from '@angular/platform-browser';
-import {interval} from 'rxjs';
+import {interval, Observable} from 'rxjs';
 
 enum PageEnum {
   ALL,
@@ -96,6 +96,9 @@ export class HomeComponent implements OnInit {
   private steps: string[] = []; // store back forward path
   loadingList = false;
   isObserving = false;
+  globalStat: GlobalStat;
+
+  downloadSpeedObservable: Observable<number>;
 
   setDataSourceAttributes() {
     this.dataSource.sort = this.sort;
@@ -295,7 +298,6 @@ export class HomeComponent implements OnInit {
       });
     }
     this.updateDownloadHistoryTable();
-    this.observeDownload();
   }
 
   async unPauseDl() {
@@ -309,21 +311,19 @@ export class HomeComponent implements OnInit {
       });
     }
     this.updateDownloadHistoryTable();
-    this.observeDownload();
   }
 
   async removeDl() {
     if (this.downloadSelection.isEmpty()) {
       this.downloadTableDataSource.data.forEach((d) => {
-        this.pcsService.remove(d.gid);
+        this.pcsService.forceRemove(d.gid);
       });
     } else {
       this.downloadSelection.selected.forEach((d) => {
-        this.pcsService.remove(d.gid);
+        this.pcsService.forceRemove(d.gid);
       });
     }
     this.updateDownloadHistoryTable();
-    this.observeDownload();
   }
 
   async download(fileItem: FileItem) {
@@ -336,7 +336,6 @@ export class HomeComponent implements OnInit {
       }
     }
     this.updateDownloadHistoryTable();
-    this.observeDownload();
   }
 
   downloadAllSelect() {
@@ -374,27 +373,20 @@ export class HomeComponent implements OnInit {
     this.currentPage = currentPage;
     if (currentPage === PageEnum.DOWNLOAD) {
       this.updateDownloadHistoryTable();
-      this.observeDownload();
     }
   }
 
-  updateDownloadHistoryTable(): void {
-    this.downloadSelection.clear();
-    setTimeout(async () => {
-      const result = await this.pcsService.tellStopped(0, 100);
-      this.updateDownloadTableDataSource(result);
-    }, 10);
-    setTimeout(async () => {
-      const result = await this.pcsService.tellWaiting(0, 100);
-      this.updateDownloadTableDataSource(result);
-    }, 10);
-    setTimeout(async () => {
-      const result = await this.pcsService.tellActive();
-      this.updateDownloadTableDataSource(result);
-    }, 10);
-  }
+  async updateDownloadHistoryTable() {
+    this.observeDownload();
+    const tellResult = [];
+    tellResult.push(...await this.pcsService.tellStopped(0, 100));
+    tellResult.push(...await this.pcsService.tellWaiting(0, 100));
+    tellResult.push(...await this.pcsService.tellActive());
 
-  private updateDownloadTableDataSource(tellResult: DownloadStatus[]) {
+    if (tellResult.length === 0) {
+      this.downloadTableDataSource.data = [];
+      return;
+    }
     for (const i in tellResult) {
       const files = tellResult[i].files;
       if (files.length > 0) {
@@ -406,11 +398,16 @@ export class HomeComponent implements OnInit {
     for (const i in tellResult) {
       let isNewAdd = true;
       for (const j in this.downloadTableDataSource.data) {
+        let isDelete = true;
         if (tellResult[i].gid === this.downloadTableDataSource.data[j].gid) {
           this.downloadTableDataSource.data[j].completedLength = tellResult[i].completedLength;
           this.downloadTableDataSource.data[j].totalLength = tellResult[i].totalLength;
           this.downloadTableDataSource.data[j].status = tellResult[i].status;
           isNewAdd = false;
+          isDelete = false;
+        }
+        if (isDelete) {
+          this.downloadTableDataSource.data.splice(parseInt(j, 0), 1);
         }
       }
       if (isNewAdd) {
@@ -429,16 +426,13 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.isObserving = true;
-    const downloadSpeedObservable = interval(1000);
-    const sb = downloadSpeedObservable.subscribe(async () => {
+    // if (!this.downloadSpeedObservable) {
+    //   this.downloadSpeedObservable = interval(1000);
+    // }
+    const sb = interval(1000).subscribe(async () => {
       const active = await this.pcsService.tellActive();
-      console.log(active);
-      if (active.length === 0) {
-        setTimeout(() => {
-          sb.unsubscribe();
-          this.isObserving = false;
-        }, 1000);
-      } else {
+      this.globalStat = await this.pcsService.getGlobalStat();
+      if (active.length > 0) {
         for (const i in active) {
           let added = false;
           for (const j in this.downloadTableDataSource.data) {
@@ -454,6 +448,12 @@ export class HomeComponent implements OnInit {
             this.downloadTableDataSource.data.push(active[i]);
           }
         }
+      } else {
+        sb.unsubscribe();
+        this.isObserving = false;
+        setTimeout(async () => {
+          this.globalStat = await this.pcsService.getGlobalStat();
+        }, 10000);
       }
     });
   }
