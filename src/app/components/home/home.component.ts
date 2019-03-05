@@ -310,6 +310,7 @@ export class HomeComponent implements OnInit {
         }
       });
     }
+    this.selection.clear();
     this.updateDownloadHistoryTable();
   }
 
@@ -323,6 +324,7 @@ export class HomeComponent implements OnInit {
         this.pcsService.forceRemove(d.gid);
       });
     }
+    this.selection.clear();
     this.updateDownloadHistoryTable();
   }
 
@@ -335,6 +337,7 @@ export class HomeComponent implements OnInit {
         await this.pcsService.download(fileItem.path, savePath);
       }
     }
+    this.selection.clear();
     this.updateDownloadHistoryTable();
   }
 
@@ -398,16 +401,11 @@ export class HomeComponent implements OnInit {
     for (const i in tellResult) {
       let isNewAdd = true;
       for (const j in this.downloadTableDataSource.data) {
-        let isDelete = true;
         if (tellResult[i].gid === this.downloadTableDataSource.data[j].gid) {
           this.downloadTableDataSource.data[j].completedLength = tellResult[i].completedLength;
           this.downloadTableDataSource.data[j].totalLength = tellResult[i].totalLength;
           this.downloadTableDataSource.data[j].status = tellResult[i].status;
           isNewAdd = false;
-          isDelete = false;
-        }
-        if (isDelete) {
-          this.downloadTableDataSource.data.splice(parseInt(j, 0), 1);
         }
       }
       if (isNewAdd) {
@@ -441,6 +439,7 @@ export class HomeComponent implements OnInit {
               this.downloadTableDataSource.data[j].completedLength = active[i].completedLength;
               this.downloadTableDataSource.data[j].totalLength = active[i].totalLength;
               this.downloadTableDataSource.data[j].status = active[i].status;
+              console.log(active[i].files);
               break;
             }
           }

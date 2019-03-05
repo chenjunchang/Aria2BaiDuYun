@@ -12,7 +12,6 @@ import * as request from 'request';
 import {JSDOM} from 'jsdom';
 import * as CryptoJS from 'crypto-js';
 import * as url from 'url';
-import {PageEvent} from '@angular/material';
 import * as os from 'os';
 
 const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.96 Safari/537.36';
