@@ -127,7 +127,7 @@
                 <mat-icon svgIcon="{{element.iconName}}" *ngIf="element.iconName"></mat-icon>
               </span>
               <mat-icon svgIcon="{{element.iconName}}" *ngIf="!element.isdir"></mat-icon>
-              <div style="padding: 2px;" (click)="$event.stopPropagation();">{{element.server_filename}}</div>
+              <div (click)="$event.stopPropagation();">{{element.server_filename}}</div>
             </div>
           </td>
         </ng-container>
